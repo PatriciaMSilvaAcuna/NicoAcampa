@@ -110,3 +110,12 @@
             text-align: center;
             margin-bottom: 20px;
         }
+         /* Media query para pantallas pequeñas (celulares) */
+        @media (max-width: 480px) {
+            .premio-container img {
+                width: 40%;
+            }
+
+            .premio-container p {
+                font-size: 1.2em;
+            }
