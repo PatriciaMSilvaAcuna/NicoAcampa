@@ -14,11 +14,10 @@ p{text-align:center;font-size:13px;color:#444}
 .premio-container p{margin:2px;font-weight:bold}
 .premio-container img{width:90px;border-radius:8px}
 #estadisticas{text-align:center;background:#e8f5e9;padding:8px;border-radius:8px;font-weight:bold;font-size:13px;margin:10px 0}
-.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
-.numero{aspect-ratio:1/1;border:2px solid #ddd;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fff;line-height:1.1;padding:2px;overflow:hidden}
-.numero .num{font-size:13px;font-weight:900;line-height:1}
-.numero .nom{font-size:8.5px;font-weight:600;line-height:1.1;word-break:break-word;text-align:center;max-height:22px;overflow:hidden}
-.numero .check{font-size:10px;line-height:1}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.numero{height:48px;border:2px solid #ddd;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fff;line-height:1.15;padding:2px;overflow:hidden}
+.numero .linea{font-size:13px;font-weight:900;line-height:1;display:flex;gap:2px;align-items:center}
+.numero .nom{font-size:10px;font-weight:700;line-height:1.1;word-break:break-word;text-align:center;width:100%;display:block}
 .numero.libre{background:#fff}
 .numero.reservado{background:#FFEB3B;border-color:#F9A825}
 .numero.pagado{background:#4CAF50;color:white;border-color:#2E7D32}
@@ -28,6 +27,14 @@ button{flex:1;padding:10px;border:0;border-radius:8px;font-weight:bold;cursor:po
 .btn-borrar{background:#eee}
 .modo-foto .botones,.modo-foto .leyenda,.modo-foto .hint{display:none}
 footer{text-align:center;font-size:11px;color:#888;margin-top:10px}
+/* En celu, que no se achique más */
+@media (max-width:480px){
+  .container{padding:6px}
+  .grid{gap:2px}
+  .numero{height:52px}
+  .numero .linea{font-size:12px}
+  .numero .nom{font-size:9.5px}
+}
 </style>
 </head>
 <body>
@@ -43,13 +50,13 @@ footer{text-align:center;font-size:11px;color:#888;margin-top:10px}
 <button class="btn-foto" onclick="modoFoto()">📸 Modo Foto para Estado</button>
 <button class="btn-borrar" onclick="limpiar()">Borrar todo</button>
 </div>
-<p class="hint" style="font-size:11px;color:#888">Tocás 1 vez: ponés nombre y si pagó o no. Queda guardado solo.</p>
+<p class="hint" style="font-size:11px;color:#888">1 toque: nombre + si pagó. Queda guardado solo.</p>
 <footer>© 2024 PMS</footer>
 </div>
 <script>
 let datos = JSON.parse(localStorage.getItem('nicoAcampa_v3')||'{}');
 const grid = document.getElementById('gridNumeros');
-function nombreCorto(n){ return n.trim().split(' ')[0].slice(0,8); }
+function nombreCorto(n){ return n.trim().split(' ')[0].slice(0,9); }
 function dibujar(){
   grid.innerHTML='';
   let libres=0, reservados=0, pagados=0;
@@ -60,20 +67,20 @@ function dibujar(){
     let div=document.createElement('div');
     div.className='numero '+estado;
     if(!info){
-      div.innerHTML='<span class="num">'+n+'</span>';
+      div.innerHTML='<span class="linea">'+n+'</span><span class="nom">&nbsp;</span>';
     } else if(estado==='pagado'){
-      div.innerHTML='<span class="num">'+n+'</span><span class="check">✓</span><span class="nom">'+nombreCorto(info.nombre)+'</span>';
+      div.innerHTML='<span class="linea">'+n+' ✓</span><span class="nom">'+nombreCorto(info.nombre)+'</span>';
     } else {
-      div.innerHTML='<span class="num">'+n+'</span><span class="nom">'+nombreCorto(info.nombre)+'</span>';
+      div.innerHTML='<span class="linea">'+n+'</span><span class="nom">'+nombreCorto(info.nombre)+'</span>';
     }
     div.onclick=()=>{
       if(!datos[n]){
         let nombre=prompt('Número '+n+'\n¿Quién lo compra?');
         if(!nombre) return;
-        let pago = confirm('¿'+nombre+' YA PAGÓ el número '+n+'?\nAceptar = Pagado ✅\nCancelar = Reservado 🟨');
+        let pago = confirm('¿'+nombre+' YA PAGÓ el '+n+'?\nAceptar = Pagado ✅\nCancelar = Reservado 🟨');
         datos[n]={nombre: nombre.trim(), estado: pago ? 'pagado' : 'reservado'};
       } else if(datos[n].estado==='reservado'){
-        if(confirm('¿'+datos[n].nombre+' ya PAGÓ el '+n+'?\nAceptar = Pasar a Pagado ✅')) datos[n].estado='pagado';
+        if(confirm('¿'+datos[n].nombre+' ya PAGÓ el '+n+'?')) datos[n].estado='pagado';
         else if(confirm('¿Querés LIBERAR el '+n+'?')) delete datos[n];
       } else {
         if(confirm('Número '+n+' - '+datos[n].nombre+' - Pagado ✅\n¿Querés LIBERARLO?')) delete datos[n];
