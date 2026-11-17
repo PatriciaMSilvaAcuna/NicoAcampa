@@ -1,43 +1,109 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Compradores para Sorteo</title>
-
-      <link rel="stylesheet" type="text/css" href="estilo.css">  
-    </head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Compradores para Sorteo - Nico Acampa</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:#f2f2f2;padding:8px}
+.container{max-width:430px;margin:0 auto;background:white;border-radius:12px;padding:10px}
+h1{text-align:center;font-size:20px;margin:5px 0}
+p{text-align:center;font-size:13px;color:#444}
+.premio-container{text-align:center;border:1px solid #eee;border-radius:10px;padding:6px;margin:6px 0;background:#fffbe6}
+.premio-container p{margin:2px;font-weight:bold}
+.premio-container img{width:90px;border-radius:8px}
+#estadisticas{text-align:center;background:#e8f5e9;padding:8px;border-radius:8px;font-weight:bold;font-size:13px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.numero{aspect-ratio:1/1;border:2px solid #ddd;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:bold;cursor:pointer;background:#fff;line-height:1.1;text-align:center;padding:1px;overflow:hidden}
+.numero.libre{background:#fff}
+.numero.reservado{background:#FFEB3B;border-color:#F9A825}
+.numero.pagado{background:#4CAF50;color:white;border-color:#2E7D32}
+.numero small{font-size:8px;font-weight:normal}
+.botones{display:flex;gap:6px;margin-top:10px}
+button{flex:1;padding:10px;border:0;border-radius:8px;font-weight:bold;cursor:pointer}
+.btn-foto{background:#25D366;color:white}
+.btn-borrar{background:#eee}
+.modo-foto .botones,.modo-foto .leyenda,.modo-foto .hint{display:none}
+footer{text-align:center;font-size:11px;color:#888;margin-top:10px}
+</style>
+</head>
 <body>
+<div class="container" id="captura">
+<h1>Registro de Compradores</h1>
+<p>Se sorteará una vez vendido la totalidad de los números por Lotería Nacional</p>
 
-<div class="container">
-    <h1>Registro de Compradores</h1>
-    
+<div class="premio-container">
+<p>1º PREMIO</p>
+<p>Juego de Sábana de 2 1/2 PL</p>
+<img src="Sabana.jpg" alt="Sabana 2 1/2 PL">
 </div>
-<div>
-<p> Se sorteará una vez vendido la totalidad de los números  por Loteria Nacional </p>
-
-</div>
- <div class="premio-container">
-  <p> 1º PREMIO</p>  
-  <p> Juego de Sabana de 2 1/2 PL</p>
- <img src="Sabana.jpg"alt="Sabana 2 1/2 PL" width="10%">   
-</div> 
- <div class="premio-container">
-  <p> 2º PREMIO</p>
-  <p> Toallón y Repasador</p>  
- <img src="Toalla.jpg"alt="Toalla" width="10%">   
-</div>   
-<div class="grid" id="gridNumeros">
-    
-    <!-- Aquí se generarán los números del 1 al 100 -->
+<div class="premio-container">
+<p>2º PREMIO</p>
+<p>Toallón y Repasador</p>
+<img src="Toalla.jpg" alt="Toalla">
 </div>
 
-<footer class="text-center bg-dark text-white py-3 fixed-bottom">
-    
- <p>© 2024 PMS </p>  
+<div id="estadisticas"></div>
 
-  <div id="estadisticas"></div>  
-</footer>
+<div class="leyenda" style="font-size:11px;text-align:center">
+⬜ Libre &nbsp; 🟨 Reservado / Sin pagar &nbsp; ✅ Pagado
+</div>
+
+<div class="grid" id="gridNumeros"></div>
+
+<div class="botones">
+<button class="btn-foto" onclick="modoFoto()">📸 Modo Foto para Estado</button>
+<button class="btn-borrar" onclick="limpiar()">Borrar todo</button>
+</div>
+<p class="hint" style="font-size:11px;color:#888">Tocá un número: 1º toque = Reservado, 2º toque = Pagado ✓, 3º toque = Libre. Se guarda solo en tu celu.</p>
+<footer>© 2024 PMS</footer>
+</div>
+
+<script>
+let datos = JSON.parse(localStorage.getItem('nicoAcampa_v2')||'{}');
+// datos = { "05": {nombre:"Maria", estado:"pagado"} } estado: reservado / pagado
+const grid = document.getElementById('gridNumeros');
+
+function dibujar(){
+  grid.innerHTML='';
+  let libres=0, reservados=0, pagados=0;
+  for(let i=0;i<=99;i++){
+    let n=String(i).padStart(2,'0');
+    let info=datos[n];
+    let div=document.createElement('div');
+    let estado = info ? info.estado : 'libre';
+    div.className='numero '+estado;
+    if(!info) div.innerHTML=n;
+    else if(estado==='pagado') div.innerHTML=n+'<br>✓<small>'+info.nombre+'</small>';
+    else div.innerHTML=n+'<br><small>'+info.nombre+'</small>';
+    div.onclick=()=>{
+      if(!datos[n]){
+        let nombre=prompt('¿Quién reserva el '+n+'?');
+        if(nombre) datos[n]={nombre, estado:'reservado'};
+      } else if(datos[n].estado==='reservado'){
+        if(confirm('¿'+datos[n].nombre+' ya PAGÓ el '+n+'?')){
+          datos[n].estado='pagado';
+        }
+      } else {
+        if(confirm('¿Liberar el '+n+' de '+datos[n].nombre+'?')) delete datos[n];
+      }
+      localStorage.setItem('nicoAcampa_v2', JSON.stringify(datos));
+      dibujar();
+    };
+    grid.appendChild(div);
+    if(!info) libres++; else if(estado==='reservado') reservados++; else pagados++;
+  }
+  document.getElementById('estadisticas').textContent =
+    'Libres: '+libres+' | Reservados: '+reservados+' | Pagados ✓: '+pagados+' | Total: 100';
+}
+function limpiar(){ if(confirm('¿Borrar todos los números?')){ datos={}; localStorage.removeItem('nicoAcampa_v2'); dibujar(); } }
+function modoFoto(){
+  document.body.classList.add('modo-foto');
+  alert('Listo para la foto. Sacá el screenshot ahora, la grilla entra entera. Tocá cualquier lado para volver.');
+  document.body.onclick=()=>document.body.classList.remove('modo-foto');
+}
+dibujar();
+</script>
 </body>
-<script src="gridNumeros.js"></script>
 </html>
